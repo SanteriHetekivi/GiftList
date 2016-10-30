@@ -1,0 +1,169 @@
+<!--
+  Made by Santeri Hetekivi (https://github.com/SanteriHetekivi)
+  for Gift List project. (https://github.com/SanteriHetekivi/GiftList)
+  Licensed under Apache License 2.0.
+  10/2016
+-->
+<head>
+    <meta charset="UTF-8">
+    <title>Gift List</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js" crossorigin="anonymous"></script>
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #section-to-print, #section-to-print * {
+                visibility: visible;
+            }
+            #section-to-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+        }
+        img{
+            max-height: 300px;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="https://github.com/SanteriHetekivi/GiftList">
+            <h1>Gift List</h1>
+        </a>
+            <div class="col-xs-12 col-sm-6">
+                Give gift list as UTF-8 CSV file:<br>
+                <a href="https://raw.githubusercontent.com/SanteriHetekivi/GiftList/master/example.csv">Example: title,price,store,image_url,comment</a>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <input type="file" id="gift_list_csv" name="gift_list_csv" enctype="multipart/form-data" />
+            </div>
+        </div>
+
+        <div class="container" id="section-to-print">
+            <table class="table table-hover">
+                <h1 class="replaceable">Title</h1>
+                <thead>
+                <tr>
+                    <th class="replaceable">No</th>
+                    <th class="replaceable">Image</th>
+                    <th class="replaceable">Title</th>
+                    <th class="replaceable">Price</th>
+                    <th class="replaceable">Store</th>
+                    <th class="replaceable">Comments</th>
+                </tr>
+                </thead>
+                <tbody id="gift_list" name="gift_list">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    $(
+        function()
+        {
+            document.getElementById('gift_list_csv').addEventListener('change', readFile, false);
+            $("[class='replaceable']").one("click", onReplaceableClick);
+        }
+    );
+
+    function onReplaceableClick()
+    {
+        $( this ).click(false);
+        $( this ).html("<input type='text'>");
+        $( this ).find("input").keypress(function (e) {
+            if (e.which == 13) {
+                inputEnter(this);
+                return false;    //<---- Add this line
+            }
+        });
+    }
+
+    function inputEnter(input)
+    {
+        var text = input.value;
+        var replaceables = $(input).parent("[class='replaceable']");
+        if(replaceables.length <= 0) return false;
+        var replaceable = replaceables[0];
+        $(replaceable).html(text);
+        $(replaceable).one("click", onReplaceableClick);
+    }
+
+    function readFile (evt) {
+        var files = evt.target.files;
+        var file = files[0];
+        var reader = new FileReader();
+        reader.onload = function() {
+            var CSV = Papa.parse(this.result);
+            if(CSV.errors.length > 0) alert("Faulty CSV file!");
+            else makeList(CSV.data);
+        };
+        reader.readAsText(file)
+    }
+
+    function toEuro(numberString)
+    {
+        numberString = numberString.replace(/,/g, '.');
+        var float = parseFloat(numberString);
+        if(isNaN(float)) return false;
+        else var number = float.toLocaleString();
+        return number+" &euro;";
+    }
+
+    function makeList(CSV)
+    {
+        if(!Array.isArray(CSV) || CSV.length <= 0) return false;
+        var rows = "";
+        var columns = [];
+        var image_not_found = "https://c1.staticflickr.com/1/186/382004453_f4b2772254.jpg";
+        CSV.forEach
+        (
+            function (gift, index)
+            {
+                var row = "<tr>";
+                columns = [];
+
+                var title = (0 in gift)?gift[0]:"";
+                var price = (1 in gift && toEuro(gift[1]))?toEuro(gift[1]):"";
+                var store = (2 in gift)?gift[2]:"";
+                var image_src = (3 in gift)?gift[3]:image_not_found;
+                var comment = (4 in gift)?gift[4]:"";
+
+                var no = (index+1).toString();
+                var image = "<img src='"+image_src+"' alt='Image of the gift.' >";
+
+                columns.push(no);
+                columns.push(image);
+                columns.push(title);
+                columns.push(price);
+                columns.push(store);
+                columns.push(comment);
+
+                var empty_columns = 0;
+                columns.forEach
+                (
+                    function (column, index)
+                    {
+                        row += "<td>"+column+"</td>";
+                        if(!column) ++empty_columns;
+                    }
+                );
+                row += "</tr>";
+                if(empty_columns <= 1) rows += row;
+            }
+        );
+        $("#gift_list").html(rows);
+        console.log(CSV);
+    }
+</script>
