@@ -114,17 +114,30 @@
         reader.readAsText(file)
     }
 
-    function makeListFromCSV(string)
+    function makeListFromCSV(string, from_url)
     {
-        var CSV = Papa.parse(string);
-        if(CSV.errors.length > 0) alert("Faulty CSV string!");
+        if(!string) return false;
+        if(string.endsWith(".csv"))
+        {
+            $.ajax({
+                url : string,
+                success : function(result){
+                    makeListFromCSV(result, true)
+                }
+            });
+        }
         else
         {
-            var uri = new URI();
-            uri.setSearch("csv", string);
-            var url = uri.toString();
-            if(document.location != url) document.location = url;
-            else makeList(CSV.data);
+            var CSV = Papa.parse(string);
+            if(CSV.errors.length > 0) alert("Faulty CSV string!");
+            else
+            {
+                var uri = new URI();
+                uri.setSearch("csv", string);
+                var url = uri.toString();
+                if(document.location != url && !from_url) document.location = url;
+                else makeList(CSV.data);
+            }
         }
     }
 
