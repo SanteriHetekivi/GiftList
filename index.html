@@ -16,6 +16,7 @@
     <script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA=" crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/URI.js/1.18.2/URI.js" crossorigin="anonymous"></script>
     <style>
         @media print {
             body * {
@@ -75,6 +76,9 @@
         {
             document.getElementById('gift_list_csv').addEventListener('change', readFile, false);
             $("[class='replaceable']").one("click", onReplaceableClick);
+            var uri = new URI();
+            var parms = uri.search(true);
+            if("csv" in parms) makeListFromCSV(parms.csv);
         }
     );
 
@@ -105,12 +109,25 @@
         var file = files[0];
         var reader = new FileReader();
         reader.onload = function() {
-            var CSV = Papa.parse(this.result);
-            if(CSV.errors.length > 0) alert("Faulty CSV file!");
-            else makeList(CSV.data);
+            makeListFromCSV(this.result);
         };
         reader.readAsText(file)
     }
+
+    function makeListFromCSV(string)
+    {
+        var CSV = Papa.parse(string);
+        if(CSV.errors.length > 0) alert("Faulty CSV string!");
+        else
+        {
+            var uri = new URI();
+            uri.setSearch("csv", string);
+            var url = uri.toString();
+            if(document.location != url) document.location = url;
+            else makeList(CSV.data);
+        }
+    }
+
 
     function toEuro(numberString)
     {
