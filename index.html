@@ -134,7 +134,7 @@
         numberString = numberString.replace(/,/g, '.');
         var float = parseFloat(numberString);
         if(isNaN(float)) return false;
-        else var number = float.toLocaleString();
+        else var number = float.toLocaleString(undefined, { minimumFractionDigits: 2 });
         return number+" &euro;";
     }
 
