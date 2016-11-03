@@ -47,7 +47,8 @@
                 <a href="https://raw.githubusercontent.com/SanteriHetekivi/GiftList/master/example.csv">Example: title,price,store,image_url,comment</a>
             </div>
             <div class="col-xs-12 col-sm-6">
-                <input type="file" id="gift_list_csv" name="gift_list_csv" enctype="multipart/form-data" />
+                <input type="file" id="gift_list_csv" name="gift_list_csv" enctype="multipart/form-data" /><br>
+                <button id="clear_button">Clear</button>
             </div>
         </div>
 
@@ -76,11 +77,22 @@
         {
             document.getElementById('gift_list_csv').addEventListener('change', readFile, false);
             $("[class='replaceable']").one("click", onReplaceableClick);
-            var uri = new URI();
-            var parms = uri.search(true);
-            if("csv" in parms) makeListFromCSV(parms.csv);
+            $("#clear_button").click(clear);
+            parseUrl();
         }
     );
+
+    function parseUrl()
+    {
+        var uri = new URI();
+        var parms = uri.search(true);
+        if("csv" in parms) makeListFromCSV(parms.csv);
+    }
+
+    function clear()
+    {
+        window.location = window.location.href.split("?")[0];
+    }
 
     function onReplaceableClick()
     {
